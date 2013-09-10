@@ -26,7 +26,7 @@ def link():
     for f in find_files():
         dest = f.split("/")[-1]
         dest = os.path.expanduser("~/.") + dest
-        if os.path.exists(f) is False:
+        if os.path.exists(dest) is False:
             print "Symlinking %s as %s" % (f, dest)
             os.symlink(f, dest)
         else:
