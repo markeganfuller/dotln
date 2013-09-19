@@ -61,7 +61,7 @@ def find_files():
 if __name__ == "__main__":
     ACTIONS = {"update": update, "remove": remove, "link": link}
     parser = argparse.ArgumentParser(description="Dot(file) L(i)n(ker)")
-    parser.add_argument("action", choices=['update', 'remove', 'link'])
+    parser.add_argument("action", choices=ACTIONS.keys())
     args = vars(parser.parse_args())
-    if args['action'] in ACTIONS:
+    if args['action'] in ACTIONS.keys():
         ACTIONS[args['action']]()
