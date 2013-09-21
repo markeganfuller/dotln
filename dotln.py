@@ -17,8 +17,15 @@ def update():
     print "Updating Repos..."
     for repo in find_repos():
         print repo
-        out = cmd_utils.run_cmd("git pull", repo)
-        print out[0]
+        # Check for local changes
+        try:
+            out = cmd_utils.run_cmd("git diff-index --quiet HEAD --", repo)
+        except cmd_utils.CommandException:
+            print "WARN: Local changes in %s" % repo
+            print "Not pulling"
+        else:
+            out = cmd_utils.run_cmd("git pull", repo)
+            print out[0]
 
 
 def link():
