@@ -10,12 +10,44 @@ import os
 import os.path
 
 
-CONFIG_DIR = "/Users/mark/repos/mine/dotfiles/"
+CONFIG = os.path.expanduser("~/.dotln")
+
+
+def config_wrap(f):
+    """
+    Decorater to get config directory
+    """
+    def config_check(*args, **kwargs):
+        '''
+        Check for config file
+        '''
+        if os.path.exists(CONFIG):
+            with open(CONFIG, 'r') as config:
+                config_dir = config.read().rstrip()
+            print "Config found %s" % config_dir
+        else:
+            print "No Config Found"
+            config_dir = raw_input("Please enter dotfiles directory: ")
+            if config_dir[-1] != '/':
+                config_dir = config_dir + '/'
+            with open(CONFIG, 'w') as config:
+                config.write(config_dir)
+
+        return f(config_dir)
+
+    # Hide Decorator
+    config_check.__name__ = f.__name__
+    config_check.__doc__ = f.__doc__
+    config_check.__dict__.update(f.__dict__)
+    return config_check
 
 
 def update():
+    """
+    Run git pull if there are no local changes for all found repos
+    """
     print "Updating Repos..."
-    for repo in find_repos():
+    for repo in find_repos(None):
         print repo
         # Check for local changes
         try:
@@ -29,8 +61,11 @@ def update():
 
 
 def link():
+    """
+    Symlink dotfiles into home directory
+    """
     print "Symlinking Dotfiles..."
-    for f in find_files():
+    for f in find_files(None):
         dest = f.split("/")[-1]
         dest = os.path.expanduser("~/.") + dest
         if os.path.exists(dest) is False:
@@ -41,27 +76,36 @@ def link():
 
 
 def remove():
+    """
+    Remove symlinks to dotfiles
+    """
     print "Removing Dotfiles..."
-    for f in find_files():
+    for f in find_files(None):
+        print f
         f = f.split("/")[-1]
         f = os.path.expanduser("~/.") + f
         if os.path.exists(f):
-            do_it = raw_input("Remove %s [y/n]" % f)
-            if do_it == 'y':
-                print "Removing %s" % f
-                os.remove(f)
+            if os.path.islink(f):
+                do_it = raw_input("Remove %s [y/n]" % f)
+                if do_it == 'y':
+                    print "Removing %s" % f
+                    os.remove(f)
+                else:
+                    print "Not Removing %s" % f
             else:
-                print "Not Removing %s" % f
+                print "File not Link found, no action taken"
 
 
-def find_repos():
-    repos = glob.glob(CONFIG_DIR + "*/.git")
+@config_wrap
+def find_repos(config_dir):
+    repos = glob.glob(config_dir + "*/.git")
     repos = [r.split("/.git")[0] for r in repos]
     return repos
 
 
-def find_files():
-    files = glob.glob(CONFIG_DIR + "*/*")
+@config_wrap
+def find_files(config_dir):
+    files = glob.glob(config_dir + "*/*")
     return files
 
 
