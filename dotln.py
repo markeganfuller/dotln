@@ -57,7 +57,7 @@ def update():
             print "Not pulling"
         else:
             out = cmd_utils.run_cmd("git pull", repo)
-            print out[0]
+            print "-" + out.rstrip()
 
 
 def link():
