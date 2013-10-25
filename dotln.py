@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python
 '''
 Dot(file) L(i)n(ker)
 Simple script to link / remove and update dot files.
