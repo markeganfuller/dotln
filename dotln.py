@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-'''
-Dot(file) L(i)n(ker)
+"""
+Dot(file) L(i)n(ker).
+
 Simple script to link / remove and update dot files.
-'''
+
+"""
 import argparse
 import cmd_utils
 import glob
@@ -14,9 +16,8 @@ CONFIG = os.path.expanduser("~/.dotln")
 
 
 def config_wrap(f):
-    """
-    Decorater to get config directory
-    """
+    """Decorator to get config directory."""
+    # pylint: disable=W0613
     def config_check(*args, **kwargs):
         '''
         Check for config file
@@ -34,6 +35,7 @@ def config_wrap(f):
                 config.write(config_dir)
 
         return f(config_dir)
+    # pylint: enable=W0613
 
     # Hide Decorator
     config_check.__name__ = f.__name__
@@ -43,9 +45,7 @@ def config_wrap(f):
 
 
 def update():
-    """
-    Run git pull if there are no local changes for all found repos
-    """
+    """Run git pull if there are no local changes for all found repos."""
     print "Updating Repos..."
     for repo in find_repos(None):
         print repo
@@ -61,9 +61,7 @@ def update():
 
 
 def link():
-    """
-    Symlink dotfiles into home directory
-    """
+    """Symlink dotfiles into home directory."""
     print "Symlinking Dotfiles..."
     for f in find_files(None):
         dest = f.split("/")[-1]
@@ -76,9 +74,7 @@ def link():
 
 
 def remove():
-    """
-    Remove symlinks to dotfiles
-    """
+    """Remove symlinks to dotfiles."""
     print "Removing Dotfiles..."
     for f in find_files(None):
         print f
@@ -98,6 +94,7 @@ def remove():
 
 @config_wrap
 def find_repos(config_dir):
+    """Find git repos by looking for .git folders."""
     repos = glob.glob(config_dir + "*/.git")
     repos = [r.split("/.git")[0] for r in repos]
     return repos
@@ -105,6 +102,7 @@ def find_repos(config_dir):
 
 @config_wrap
 def find_files(config_dir):
+    """Find indivual files."""
     files = glob.glob(config_dir + "*/*")
     return files
 
