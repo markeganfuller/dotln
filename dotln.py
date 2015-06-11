@@ -1,15 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 Dot(file) L(i)n(ker).
 
 Simple script to link / remove and update dot files.
 
 """
+__version__ = 2
+
 import argparse
-import cmd_utils
 import glob
 import os
 import os.path
+import subprocess
 
 
 CONFIG = os.path.expanduser("~/.dotln")
@@ -25,10 +27,11 @@ def config_wrap(f):
         if os.path.exists(CONFIG):
             with open(CONFIG, 'r') as config:
                 config_dir = config.read().rstrip()
-            print "Config found %s" % config_dir
+            print("Config found %s" % config_dir)
+            print("\n---\n")
         else:
-            print "No Config Found"
-            config_dir = raw_input("Please enter dotfiles directory: ")
+            print("No Config Found")
+            config_dir = input("Please enter dotfiles directory: ")
             if config_dir[-1] != '/':
                 config_dir = config_dir + '/'
             with open(CONFIG, 'w') as config:
@@ -46,50 +49,53 @@ def config_wrap(f):
 
 def update():
     """Run git pull if there are no local changes for all found repos."""
-    print "Updating Repos..."
+    print("Updating Repos...")
     for repo in find_repos(None):
-        print repo
+        print(repo)
         # Check for local changes
         try:
-            out = cmd_utils.run_cmd("git diff-index --quiet HEAD --", repo)
-        except cmd_utils.CommandException:
-            print "WARN: Local changes in %s" % repo
-            print "Not pulling"
+            cmd = ["git", "diff-index", "--quiet", "HEAD", "--"]
+            subprocess.check_call(cmd, cwd=repo)
+        except subprocess.CalledProcessError:
+            print("WARN: Local changes in %s" % repo)
+            print("Not pulling")
         else:
-            out = cmd_utils.run_cmd("git pull", repo)
-            print "-" + out.rstrip()
+            cmd = ["git", "pull"]
+            out = subprocess.check_output(cmd, cwd=repo,
+                                          universal_newlines=True)
+            print("-" + out.rstrip())
 
 
 def link():
     """Symlink dotfiles into home directory."""
-    print "Symlinking Dotfiles..."
+    print("Symlinking Dotfiles...")
     for f in find_files(None):
         dest = f.split("/")[-1]
         dest = os.path.expanduser("~/.") + dest
         if os.path.exists(dest) is False:
-            print "Symlinking %s as %s" % (f, dest)
+            print("Symlinking %s as %s" % (f, dest))
             os.symlink(f, dest)
         else:
-            print "%s already exists, not linking." % dest
+            print("%s already exists, not linking." % dest)
 
 
 def remove():
     """Remove symlinks to dotfiles."""
-    print "Removing Dotfiles..."
+    print("Removing Dotfiles...")
     for f in find_files(None):
-        print f
+        print(f)
         f = f.split("/")[-1]
         f = os.path.expanduser("~/.") + f
         if os.path.exists(f):
             if os.path.islink(f):
-                do_it = raw_input("Remove %s [y/n]" % f)
+                do_it = input("Remove %s [y/n]" % f)
                 if do_it == 'y':
-                    print "Removing %s" % f
+                    print("Removing %s" % f)
                     os.remove(f)
                 else:
-                    print "Not Removing %s" % f
+                    print("Not Removing %s" % f)
             else:
-                print "File not Link found, no action taken"
+                print("File not Link found, no action taken")
 
 
 @config_wrap
